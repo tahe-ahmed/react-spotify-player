@@ -22,6 +22,7 @@ class App extends Component {
       is_playing: "Paused",
       progress_ms: 0,
       no_data: false,
+      toptracks: [{ name: "" }],
     };
 
     this.getCurrentlyPlaying = this.getCurrentlyPlaying.bind(this);
@@ -65,43 +66,44 @@ class App extends Component {
     })
       .then((response) => response.json())
       .then((data) => {
-        console.log(data);
+        this.getTopTracks(data.item.artists[0].id, token);
+
         console.log("Success:", data);
+
         this.setState({
           item: data.item,
           is_playing: data.is_playing,
           progress_ms: data.progress_ms,
-          no_data: false /* We need to "reset" the boolean, in case the
-                                  user does not give F5 and has opened his Spotify. */,
+          no_data: false,
         });
       })
       .catch((error) => {
         console.error("Error:", error);
       });
-    // $.ajax({
-    //   url: "https://api.spotify.com/v1/me/player",
-    //   type: "GET",
-    //   beforeSend: xhr => {
-    //     xhr.setRequestHeader("Authorization", "Bearer " + token);
-    //   },
-    //   success: data => {
-    //     // Checks if the data is not empty
-    //     if(!data) {
-    //       this.setState({
-    //         no_data: true,
-    //       });
-    //       return;
-    //     }
+  }
 
-    //     this.setState({
-    //       item: data.item,
-    //       is_playing: data.is_playing,
-    //       progress_ms: data.progress_ms,
-    //       no_data: false /* We need to "reset" the boolean, in case the
-    //                         user does not give F5 and has opened his Spotify. */
-    //     });
-    //   }
-    // });
+  getTopTracks(id, token) {
+    // Make a call using the token
+
+    fetch(`https://api.spotify.com/v1/artists/${id}/top-tracks?market=NL`, {
+      method: "GET", // or 'PUT'
+      headers: {
+        Authorization: "Bearer " + token,
+      },
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        // console.log(data);
+        console.log("Success:", data);
+        data.forEach((item) =>
+          this.setState({
+            toptracks: [{ name: item.name }],
+          })
+        );
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+      });
   }
 
   render() {
