@@ -13,11 +13,11 @@ class App extends Component {
       token: null,
       item: {
         album: {
-          images: [{ url: "" }]
+          images: [{ url: "" }],
         },
         name: "",
         artists: [{ name: "" }],
-        duration_ms: 0
+        duration_ms: 0,
       },
       is_playing: "Paused",
       progress_ms: 0,
@@ -28,8 +28,6 @@ class App extends Component {
     this.tick = this.tick.bind(this);
   }
 
-
-
   componentDidMount() {
     // Set token
     let _token = hash.access_token;
@@ -37,7 +35,7 @@ class App extends Component {
     if (_token) {
       // Set token
       this.setState({
-        token: _token
+        token: _token,
       });
       this.getCurrentlyPlaying(_token);
     }
@@ -52,38 +50,58 @@ class App extends Component {
   }
 
   tick() {
-    if(this.state.token) {
+    if (this.state.token) {
       this.getCurrentlyPlaying(this.state.token);
     }
   }
 
-
   getCurrentlyPlaying(token) {
     // Make a call using the token
-    $.ajax({
-      url: "https://api.spotify.com/v1/me/player",
-      type: "GET",
-      beforeSend: xhr => {
-        xhr.setRequestHeader("Authorization", "Bearer " + token);
+    fetch("https://api.spotify.com/v1/me/player", {
+      method: "GET", // or 'PUT'
+      headers: {
+        Authorization: "Bearer " + token,
       },
-      success: data => {
-        // Checks if the data is not empty
-        if(!data) {
-          this.setState({
-            no_data: true,
-          });
-          return;
-        }
-
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        console.log(data);
+        console.log("Success:", data);
         this.setState({
           item: data.item,
           is_playing: data.is_playing,
           progress_ms: data.progress_ms,
           no_data: false /* We need to "reset" the boolean, in case the
-                            user does not give F5 and has opened his Spotify. */
+                                  user does not give F5 and has opened his Spotify. */,
         });
-      }
-    });
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+      });
+    // $.ajax({
+    //   url: "https://api.spotify.com/v1/me/player",
+    //   type: "GET",
+    //   beforeSend: xhr => {
+    //     xhr.setRequestHeader("Authorization", "Bearer " + token);
+    //   },
+    //   success: data => {
+    //     // Checks if the data is not empty
+    //     if(!data) {
+    //       this.setState({
+    //         no_data: true,
+    //       });
+    //       return;
+    //     }
+
+    //     this.setState({
+    //       item: data.item,
+    //       is_playing: data.is_playing,
+    //       progress_ms: data.progress_ms,
+    //       no_data: false /* We need to "reset" the boolean, in case the
+    //                         user does not give F5 and has opened his Spotify. */
+    //     });
+    //   }
+    // });
   }
 
   render() {
@@ -110,7 +128,8 @@ class App extends Component {
           )}
           {this.state.no_data && (
             <p>
-              You need to be playing a song on Spotify, for something to appear here.
+              You need to be playing a song on Spotify, for something to appear
+              here.
             </p>
           )}
         </header>
